@@ -9,7 +9,7 @@ export interface Task {
     assignedTo?: mongoose.Types.ObjectId | null;
     createdAt: Date;
     updatedAt: Date;
-    finishedAt: Date | null;
+    finishedAt?: Date | null;
 }
 
 const TaskSchema = new Schema<Task>(
@@ -31,5 +31,28 @@ const TaskSchema = new Schema<Task>(
     { timestamps: true, collection: "tasks" }
 );
 
+TaskSchema.pre("save", function(next) {
+    if(this.isModified("status")) {
+        if(this.status === "done") {
+            this.finishedAt = new Date()
+        } else {
+            this.finishedAt = null
+        }
+    }
+    next();
+});
 
+TaskSchema.pre("findOneAndUpdate", function(next) {
+    const update = this.getUpdate() as any;
+
+    if(update.status) {
+        if(update.status === "done") {
+            update.finishedAt = new Date();
+        } else {
+            update.finishedAt = null;
+        }
+    }
+    this.setUpdate(update);
+    next()
+})
 export const TaskModel = mongoose.model<Task>("Task", TaskSchema);
