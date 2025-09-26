@@ -8,7 +8,10 @@ export async function connectDB() {
     
     try {
         await mongoose.connect(process.env.MONGODB_URI, {
-            dbName: "trullo"
+            dbName: "trullo",
+            serverSelectionTimeoutMS: 5000,
+            tls: true,
+            tlsAllowInvalidCertificates: true,
         });
         console.log("MongoDB connected");
     } catch(err) {
