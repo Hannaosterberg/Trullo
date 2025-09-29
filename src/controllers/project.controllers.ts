@@ -112,7 +112,7 @@ export const deleteProject = async (req: RequestWithUser, res: Response) => {
         }
 
         const project = await ProjectModel.findByIdAndDelete(id);
-        res.json(project);
+        res.json({ message: "Project Deleted:", project });
     } catch (err) {
         res.status(500).json({ 
             error: "Failed to delete project",

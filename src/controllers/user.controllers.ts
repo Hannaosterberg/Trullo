@@ -2,6 +2,7 @@ import { UserModel } from "../models/user.model.js";
 import { Request, Response } from "express";
 import { z } from "zod";
 import mongoose from "mongoose";
+import { RequestWithUser } from "../middlewares/authMiddleware.js";
 
 const userSchema = z.object({
     name: z.string().min(2),
@@ -58,16 +59,17 @@ export const createUser = async (req: Request, res: Response) => {
     }
 };
 
-export const updateUser = async (req: Request, res: Response) => {
+export const updateUser = async (req: RequestWithUser, res: Response) => {
     try {
         const { id } = req.params;
         if(!id || !mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: "Invalid UserID"})
         }
 
-        const requesterRole = (req as any).user.role;
-        const requesterId = (req as any).user.id;
-        if(requesterRole !== "admin" && requesterId !== id) {
+        const requesterRole = req.user!.role;
+        const requesterId = req.user!.id;
+
+        if(requesterRole !== "admin" && requesterId.toString() !== id.toString()) {
             return res.status(403).json({ error: "Forbidden" });
         }
 
@@ -86,14 +88,15 @@ export const updateUser = async (req: Request, res: Response) => {
     }
 };
 
-export const deleteUser = async (req: Request, res: Response) => {
+export const deleteUser = async (req: RequestWithUser, res: Response) => {
     try {
         const { id } = req.params;
         if(!id || !mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: "Invalid UserID"})
         }
-        const requesterRole = (req as any).user.role;
-        const requesterId = (req as any).user.id;
+        const requesterRole = req.user!.role;
+        const requesterId = req.user!.id;
+        
         if(requesterRole !== "admin" && requesterId !== id) {
             return res.status(403).json({ error: "Forbidden" });
         }
@@ -105,7 +108,7 @@ export const deleteUser = async (req: Request, res: Response) => {
         res.json({ message: "User deleted", user});
     } catch (err) {
         res.status(500).json({ 
-            error: "Failed to update user", 
+            error: "Failed to delete user", 
             details: (err as Error).message });
     }
 };

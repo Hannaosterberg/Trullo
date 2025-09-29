@@ -1,8 +1,8 @@
 import crypto from "crypto";
 import { Request, Response } from "express";
-import { UserModel } from "../models/user.model.js";
+import { User, UserModel } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
@@ -19,7 +19,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
         user.resetPasswordExpires = new Date(Date.now() + 1000 * 60 * 60);
         await user.save();
         
-        const resetLink = `${process.env.FRONTEND_URL || "http://localhost:3000"}/reset-password?token=${token}§id=${user._id}`;
+        const resetLink = `${process.env.FRONTEND_URL || "http://localhost:3000"}/reset-password?token=${token}&id=${user._id}`;
         return res.json({ message: "Reset link generated (dev)", resetLink });
     } catch (err) {
         res.status(500).json({ error: "Failed to create reset token", err });
@@ -63,8 +63,10 @@ export const loginUser = async (req: Request, res: Response) => {
         const isMatch = await user.comparePassword(password);
         if(!isMatch) return res.status(400).json({ error: "Invalid credentials" });
 
-        const token = jwt.sign(
-            { id: user._id, email: user.email, role: user.role },
+        const token = jwt.sign({ 
+                id: user!._id.toString(), 
+                email: user.email, 
+                role: user.role },
             JWT_SECRET,
             { expiresIn: "1h"}
         );
