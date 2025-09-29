@@ -1,6 +1,7 @@
 import express from "express";
 import { getUsers, getUser, createUser, updateUser, deleteUser } from "../controllers/user.controllers.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
+import { adminMiddleWare } from "../middlewares/adminMiddleWare.js";
 
 const router = express.Router();
 
@@ -11,8 +12,8 @@ router.get("/:id", authMiddleware, getUser)
 // CREATE user
 router.post("/", createUser)
 // UPDATE user
-router.put("/:id", authMiddleware, updateUser)
+router.put("/:id", authMiddleware, adminMiddleWare, updateUser)
 //DELETE user
-router.delete("/:id", authMiddleware, deleteUser)
+router.delete("/:id", authMiddleware, adminMiddleWare, deleteUser)
 
 export default router;

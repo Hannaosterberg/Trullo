@@ -58,9 +58,15 @@ export const updateUser = async (req: Request, res: Response) => {
         if(!id || !mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: "Invalid UserID"})
         }
-        if((req as any).user.id !== id) {
-            return res.status(403).json({ error: "Forbidden"})
+
+        const requesterRole = (req as any).user.role;
+        const requesterId = (req as any).user.id;
+        if(requesterRole !== "admin" && requesterId !== id) {
+            return res.status(403).json({ error: "Forbidden" });
         }
+        // if((req as any).user.id !== id) {
+        //     return res.status(403).json({ error: "Forbidden"})
+        // }
         const user = await UserModel.findByIdAndUpdate(
             id, 
             req.body,
@@ -80,9 +86,14 @@ export const deleteUser = async (req: Request, res: Response) => {
         if(!id || !mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: "Invalid UserID"})
         }
-        if((req as any).user.id !== id) {
-            return res.status(403).json({ error: "Forbidden"})
+        const requesterRole = (req as any).user.role;
+        const requesterId = (req as any).user.id;
+        if(requesterRole !== "admin" && requesterId !== id) {
+            return res.status(403).json({ error: "Forbidden" });
         }
+        // if((req as any).user.id !== id) {
+        //     return res.status(403).json({ error: "Forbidden"})
+        // }
         const user = await UserModel.findByIdAndDelete(id);
 
         if(!user) return res.status(404).json({ error: "User not found" });

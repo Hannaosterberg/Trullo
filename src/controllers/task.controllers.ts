@@ -1,7 +1,17 @@
+import { RequestWithUser } from "../middlewares/authMiddleware.js";
 import { TaskModel } from "../models/task.model.js";
 import { UserModel } from "../models/user.model.js";
 import { Request, Response } from "express";
 import mongoose from "mongoose";
+
+const sanitizeTaskUpdate = (body: any) => {
+    const copy = { ...body };
+    delete copy.finishedAt;
+    delete copy.finishedBy;
+    delete copy.createdAt;
+    delete copy.updatedAt;
+    return copy;
+};
 
 export const getTasks = async (req: Request, res: Response) => {
     try {
@@ -52,7 +62,7 @@ export const createTask = async (req: Request, res: Response) => {
     }
 };
 
-export const updateTask = async (req: Request, res: Response) => {
+export const updateTask = async (req: RequestWithUser, res: Response) => {
     try {
         const { id } = req.params;
         
@@ -67,14 +77,30 @@ export const updateTask = async (req: Request, res: Response) => {
             if(!user) return res.status(400).json({ error: "Assigned user does not exist" });
         }
 
+        const existing = await TaskModel.findById(id);
+        if(!existing) return res.status(404).json({ error: "Task not found" });
+
+        const requesterId = req.user?.id;
+        const requesterRole = (req.user as any).role;
+
+        if(requesterRole !== "admin" && existing.assignedTo?.toString() !== requesterId) {
+            res.status(403).json({ error: "Forbidden" });
+        }
+
+        const safeBody = sanitizeTaskUpdate(req.body);
+        if(safeBody.status && safeBody.status === "done" && existing.status !== "done") {
+            safeBody.finishedAt = new Date();
+            safeBody.finishedBy = requesterId || null;
+        } else if (safeBody.status && safeBody.status !== "done" && existing.status === "done") {
+            safeBody.finishedAt = null;
+            safeBody.finishedBy = null;
+        }
         await TaskModel.findByIdAndUpdate(
             id,
-            req.body,
+            safeBody,
             {  new: true, runValidators: true });
 
-        const updatedTask = await TaskModel.findById(id);
-        
-        if(!updatedTask) return res.status(404).json({ error: "Task not found" });
+        const updatedTask = await TaskModel.findById(id).populate("assignedTo", "-password").populate("finishedBy", "-password");
 
         res.json(updatedTask);
     } catch (err) {
