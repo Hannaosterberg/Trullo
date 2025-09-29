@@ -33,13 +33,8 @@ export const getProject = async (req: Request, res: Response) => {
 
 export const createProject = async (req: RequestWithUser, res: Response) => {
     try {
-        const { name, description, owner, members } = req.body;
-        if(owner) {
-            const user = await UserModel.findById(owner)
-            if(!user) {
-                return res.status(400).json({ error: "Owner does not exist"})
-            }
-        }
+        const { name, description, members } = req.body;
+    
         const newProject = new ProjectModel({
             name,
             description,
@@ -63,19 +58,11 @@ export const updateProject = async (req: RequestWithUser, res: Response) => {
             return res.status(400).json({ error: "Invalid project ID" });
         }
 
-        if(req.body.owner) {
-            if (!mongoose.Types.ObjectId.isValid(req.body.owner)) {
-                return res.status(400).json({ error: "Invalid owner ID" });
-            }
-            const user = await UserModel.findById(req.body.owner);
-            if(!user) return res.status(400).json({ error: "Owner does not exist" });
-        }
-
         const existing = await ProjectModel.findById(id);
         if(!existing) return res.status(404).json({ error: "Project not found" });
 
-        const requesterRole = (req.user as any).role;
-        const requesterId = (req.user as any).id;
+        const requesterRole = req.user!.role;
+        const requesterId = req.user!.id;
 
         if(requesterRole !== "admin" && existing.owner?.toString() !== requesterId) {
             return res.status(403).json({ error: "Forbidden" });
@@ -84,7 +71,7 @@ export const updateProject = async (req: RequestWithUser, res: Response) => {
         const project = await ProjectModel.findByIdAndUpdate(
             id,
             req.body,
-            { new: true, runValidators: true});
+            { new: true, runValidators: true}).populate("owner members");
 
         res.json(project);
     } catch (err) {
@@ -104,11 +91,11 @@ export const deleteProject = async (req: RequestWithUser, res: Response) => {
         const existing = await ProjectModel.findById(id);
         if(!existing) return res.status(404).json({ error: "Project not found" });
         
-        const requesterRole = (req.user as any).role;
-        const requesterId = (req.user as any).id;
+        const requesterRole = req.user!.role;
+        const requesterId = req.user!.id;
 
         if(requesterRole !== "admin" && existing.owner?.toString() !== requesterId) {
-            res.status(403).json({ error: "Forbidden" });
+            return res.status(403).json({ error: "Forbidden" });
         }
 
         const project = await ProjectModel.findByIdAndDelete(id);

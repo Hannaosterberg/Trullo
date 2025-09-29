@@ -15,7 +15,10 @@ const sanitizeTaskUpdate = (body: any) => {
 
 export const getTasks = async (req: Request, res: Response) => {
     try {
-        const tasks = await TaskModel.find();
+        const tasks = await TaskModel.find()
+            .populate("assignedTo", "-password")
+            .populate("finishedBy", "-password");
+
         res.json(tasks);
     } catch (err) {
         res.status(500).json({ 
@@ -30,7 +33,10 @@ export const getTask = async (req: Request, res: Response) => {
         if (!id || !mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: "Invalid task ID" });
         }
-        const task = await TaskModel.findById(req.params.id);
+        const task = await TaskModel.findById(req.params.id)
+            .populate("assignedTo", "-password")
+            .populate("finishedBy", "-password");
+            
         if(!task) return res.status(404).json({ error: "Task not found" });
 
         res.json(task);
@@ -86,8 +92,8 @@ export const updateTask = async (req: RequestWithUser, res: Response) => {
         const existing = await TaskModel.findById(id);
         if(!existing) return res.status(404).json({ error: "Task not found" });
 
-        const requesterId = req.user?.id;
-        const requesterRole = (req.user as any).role;
+        const requesterId = req.user!.id;
+        const requesterRole = req.user!.role;
 
         if(requesterRole !== "admin" && existing.assignedTo?.toString() !== requesterId) {
             return res.status(403).json({ error: "Forbidden" });
@@ -106,7 +112,9 @@ export const updateTask = async (req: RequestWithUser, res: Response) => {
             safeBody,
             {  new: true, runValidators: true });
 
-        const updatedTask = await TaskModel.findById(id).populate("assignedTo", "-password").populate("finishedBy", "-password");
+        const updatedTask = await TaskModel.findById(id)
+            .populate("assignedTo", "-password")
+            .populate("finishedBy", "-password");
 
         res.json(updatedTask);
     } catch (err) {
