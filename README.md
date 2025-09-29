@@ -7,13 +7,13 @@ Jag har valt **MongoDB** som databas, främst för att vi bara använt SQL innan
 MongoDB är dokumentbaserad och passar bra för applikationer med dynamiska och relationsrika data som Task, Projects och Users. 
 
 ### 2️⃣ Tekniker och npm-paket
-I applikationer använder jag följade paket:
+I applikationen använder jag följade paket:
 * **Express** - Ramverk för att skapa API endpoints och hantera HTTP requests/responses.
-* **Mongoose** - ODM (Object Data Modeling) för MongoDB -> Ger scheman, modeller och enkel databasinteraktion.
+* **Mongoose** - ODM (Object Data Modeling) för MongoDB → Ger scheman, modeller och enkel databasinteraktion.
 * **bcrypt** - För att kryptera lösenord innan de sparas i databasen.
 * **jsonwebtoken (JWT)** - Skapar och verifierar tokens för autentisering och rollhantering.
 * **dotenv** - Läser miljövariabler från `.env`-filen för känslig information som `MONGODB_URI` och `JWT_SECRET`.
-* **zod** - Validerar inkommande data (tex nya Users) för att säkerställa korrekta yper och format.
+* **zod** - Validerar inkommande data (tex nya Users) för att säkerställa korrekta typer och format.
 * **ts-node/tsx/Typescript** - Ger typkontroll och möjlighet att köra Typescript direkt utan att först kompilera till Javascript.
 
 ### 3️⃣ Översikt över applikationen
@@ -48,8 +48,8 @@ Applikationen är en **task- och project management-app** där användare kan sk
 I alla endpoints måste man vara inloggad, förutom createUser och i auth endpoints.
 
 ### Auth
-* `POST /auth/login` - Användare loggar in med sin email och password -> får en token som skickas med i Authorization - Bearer Token.
-* `POST /auth/request-reset` - Användare har "klickat på glömt lösenord" -> skickar sin email och får en reset länk. 
+* `POST /auth/login` - Användare loggar in med sin email och password → får en token som skickas med i Authorization - Bearer Token.
+* `POST /auth/request-reset` - Användare har "klickat på glömt lösenord" ➡ skickar sin email och får en reset länk. 
 * `POST /auth/reset` - Sätter nytt lösenord via reset-länk.
   * Exempel:
     ```json
