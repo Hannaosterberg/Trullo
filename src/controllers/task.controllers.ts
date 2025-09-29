@@ -18,7 +18,9 @@ export const getTasks = async (req: Request, res: Response) => {
         const tasks = await TaskModel.find();
         res.json(tasks);
     } catch (err) {
-        res.status(500).json({ error: "Failed to fetch all tasks", err });
+        res.status(500).json({ 
+            error: "Failed to fetch all tasks",
+            details: (err as Error).message });
     }
 };
 
@@ -33,7 +35,9 @@ export const getTask = async (req: Request, res: Response) => {
 
         res.json(task);
     } catch (err) {
-        res.status(500).json({ error: "Failed to fetch task by id", err });
+        res.status(500).json({ 
+            error: "Failed to fetch task by id", 
+            details: (err as Error).message});
     }
 };
 
@@ -58,7 +62,9 @@ export const createTask = async (req: Request, res: Response) => {
 
         res.status(201).json(newTask);
     } catch (err) {
-        res.status(500).json({ error: "Failed to create task", err });
+        res.status(500).json({ 
+            error: "Failed to create task", 
+            details: (err as Error).message });
     }
 };
 
@@ -84,7 +90,7 @@ export const updateTask = async (req: RequestWithUser, res: Response) => {
         const requesterRole = (req.user as any).role;
 
         if(requesterRole !== "admin" && existing.assignedTo?.toString() !== requesterId) {
-            res.status(403).json({ error: "Forbidden" });
+            return res.status(403).json({ error: "Forbidden" });
         }
 
         const safeBody = sanitizeTaskUpdate(req.body);
@@ -104,7 +110,9 @@ export const updateTask = async (req: RequestWithUser, res: Response) => {
 
         res.json(updatedTask);
     } catch (err) {
-        res.status(500).json({ error: "Failed to update task", err });
+        res.status(500).json({ 
+            error: "Failed to update task", 
+            details: (err as Error).message });
     }
 };
 
@@ -115,6 +123,8 @@ export const deleteTask = async (req: Request, res: Response) => {
 
         res.json(task);
     } catch (err) {
-        res.status(500).json({ error: "Failed to delete task", err });
+        res.status(500).json({ 
+            error: "Failed to delete task",
+            details: (err as Error).message });
     }
 };

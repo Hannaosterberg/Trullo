@@ -14,7 +14,9 @@ export const getUsers = async (req: Request, res: Response) => {
         const users = await UserModel.find().select("-password");
         res.json(users);
     } catch (err) {
-        res.status(500).json({ error: "Failed to fetch users", err });
+        res.status(500).json({ 
+            error: "Failed to fetch users", 
+            details: (err as Error).message });
     }
 };
 
@@ -30,7 +32,9 @@ export const getUser = async (req: Request, res: Response) => {
 
         res.json(user);
     } catch (err) {
-        res.status(500).json({ error: "Failed to fetch user", err });
+        res.status(500).json({ 
+            error: "Failed to fetch user", 
+            details: (err as Error).message });
     }
 };
 
@@ -48,7 +52,9 @@ export const createUser = async (req: Request, res: Response) => {
             name: newUser.name, 
             email: newUser.email});
     } catch (err) {
-        res.status(500).json({ error: "Failed to create user", err });
+        res.status(500).json({ 
+            error: "Failed to create user", 
+            details: (err as Error).message });
     }
 };
 
@@ -64,9 +70,7 @@ export const updateUser = async (req: Request, res: Response) => {
         if(requesterRole !== "admin" && requesterId !== id) {
             return res.status(403).json({ error: "Forbidden" });
         }
-        // if((req as any).user.id !== id) {
-        //     return res.status(403).json({ error: "Forbidden"})
-        // }
+
         const user = await UserModel.findByIdAndUpdate(
             id, 
             req.body,
@@ -76,7 +80,9 @@ export const updateUser = async (req: Request, res: Response) => {
 
         res.json(user);
     } catch (err) {
-        res.status(500).json({ error: "Failed to update user", err });
+        res.status(500).json({ 
+            error: "Failed to update user", 
+            details: (err as Error).message });
     }
 };
 
@@ -91,15 +97,15 @@ export const deleteUser = async (req: Request, res: Response) => {
         if(requesterRole !== "admin" && requesterId !== id) {
             return res.status(403).json({ error: "Forbidden" });
         }
-        // if((req as any).user.id !== id) {
-        //     return res.status(403).json({ error: "Forbidden"})
-        // }
+        
         const user = await UserModel.findByIdAndDelete(id);
 
         if(!user) return res.status(404).json({ error: "User not found" });
 
         res.json({ message: "User deleted", user});
     } catch (err) {
-        res.status(500).json({ error: "Failed to update user", err });
+        res.status(500).json({ 
+            error: "Failed to update user", 
+            details: (err as Error).message });
     }
 };

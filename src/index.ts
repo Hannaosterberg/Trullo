@@ -4,15 +4,17 @@ import { connectDB } from "./db.js";
 import userRoutes from "./routes/user.routes.js";
 import taskRoutes from "./routes/task.routes.js";
 import authRoutes from "./routes/auth.route.js";
+import projectRoutes from "./routes/project.routes.js"
 
 dotenv.config();
 
 const app = express();
 
 app.use(express.json());
-app.use("/users", userRoutes)
-app.use("/tasks", taskRoutes)
-app.use("/auth", authRoutes)
+app.use("/users", userRoutes);
+app.use("/tasks", taskRoutes);
+app.use("/auth", authRoutes);
+app.use("/projects", projectRoutes);
 
 
 await connectDB()

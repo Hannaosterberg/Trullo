@@ -4,7 +4,7 @@ export interface Project extends Document {
     name: string;
     description?: string;
     owner: mongoose.Types.ObjectId;
-    members?: mongoose.Types.ObjectId;
+    members?: mongoose.Types.ObjectId[];
 }
 
 const ProjectSchema = new Schema<Project>({
