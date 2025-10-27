@@ -1,7 +1,15 @@
+"use client";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export function HeroSection() {
+    const [email, setEmail] = useState("");
+    const router = useRouter();
+    const handleSignUp = () => {
+        router.push(`/register?email=${encodeURIComponent(email)}`);
+    };
 
     return (
         <section>
@@ -17,11 +25,15 @@ export function HeroSection() {
                     className="opacity-90 rounded-xs hidden md:flex"/>
             </div>
             <div className=" flex mt-4 gap-2">
-                <input type="text"
+                <input type="email"
                 placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-sm ml-4"
                 />
-                <button className="border border-gray-300 px-4 py-2 rounded-sm hover:font-bold"><Link href="/register">Sign up - it´s free</Link></button>
+                <button 
+                    onClick={handleSignUp}
+                    className="border border-gray-300 px-4 py-2 rounded-sm hover:font-bold"><Link href="/register">Sign up - it´s free</Link></button>
             </div>
         </section>
     )
