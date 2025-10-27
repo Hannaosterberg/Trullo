@@ -2,11 +2,15 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerUserSchema, RegisterUserForm } from "../lib/userSchema";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { apiPost } from "../lib/api";
+import { useUserStore } from "../lib/useUserStore";
 
 export default function RegisterPage() {
     const searchParams = useSearchParams();
     const emailFromQuery = searchParams.get("email") || "";
+    const router = useRouter();
+    const setUser = useUserStore((s) => s.setUser);
 
     const {
         register,
@@ -17,8 +21,28 @@ export default function RegisterPage() {
         defaultValues: { email: emailFromQuery}
     });
 
-    const onSubmit = (data: RegisterUserForm) => {
-        console.log("Register Data:", data);
+    const onSubmit = async (data: RegisterUserForm) => {
+        try {
+            // create user
+            const created = await apiPost("/users", {
+                name: data.name,
+                email: data.email,
+                password: data.password,
+            });
+            // login to get token
+            const login = await apiPost("/auth/login", {
+                email: data.email,
+                password: data.password
+            });
+            const token = login.token;
+            // set store (use name from created response)
+            setUser(created.name || data.name, token);
+            // redirect to home
+            router.push("/");
+        } catch(err: any) {
+            console.error("registration failed", err);
+            alert(err.message || "registration failed");
+        }
 
     }
     
@@ -51,7 +75,7 @@ export default function RegisterPage() {
                         {...register("confirmPassword")}
                         placeholder="Confirm Password"
                         className="w-full px-4 py-2 mb-4 border border-gray-300 rounded-sm"
-                        type="confirmPassword" />
+                        type="password" />
                     {errors.confirmPassword && <p className="text-red-500 mb-4">{errors.confirmPassword.message}</p>}
                     <button
                         type="submit"

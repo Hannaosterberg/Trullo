@@ -43,7 +43,9 @@ export const createUser = async (req: Request, res: Response) => {
     try {
         const parsed = userSchema.safeParse(req.body);
         if(!parsed.success) return res.status(400).json({ error: parsed.error.issues});
-    
+        
+        console.log("createUser payload: ", req.body);
+
         const newUser = new UserModel(req.body);
 
         await newUser.save();
@@ -52,7 +54,17 @@ export const createUser = async (req: Request, res: Response) => {
             id: newUser._id, 
             name: newUser.name, 
             email: newUser.email});
-    } catch (err) {
+    } catch (err: any) {
+        // handle duplicate key (email exists)
+        if (err.name === "MongoServerError" && err.code === 11000) {
+            console.error("Duplicate key error:", err);
+            return res.status(409).json({ error: "Email already exists" });
+        }
+        // handle mongoose validation error
+        if (err.name === "ValidationError") {
+            console.error("Mongoose validation error:", err);
+            return res.status(400).json({ error: "Validation error", details: err.message });
+        }
         res.status(500).json({ 
             error: "Failed to create user", 
             details: (err as Error).message });

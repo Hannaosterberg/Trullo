@@ -5,12 +5,25 @@ import userRoutes from "./routes/user.routes.js";
 import taskRoutes from "./routes/task.routes.js";
 import authRoutes from "./routes/auth.route.js";
 import projectRoutes from "./routes/project.routes.js"
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
-
+const allowOrigins = [
+    process.env.CLIENT_URL || "http://localhost:3001",
+    "http://localhost:3000",
+];
+app.use(cors({
+    origin: (origin, callback) => {
+        if(!origin) return callback(null, true);
+        if(allowOrigins.includes(origin)) return callback(null, true);
+        callback(new Error("CORS policy: origin not allowed"));
+    },
+    credentials: true,
+}));
 app.use(express.json());
+
 app.use("/users", userRoutes);
 app.use("/tasks", taskRoutes);
 app.use("/auth", authRoutes);

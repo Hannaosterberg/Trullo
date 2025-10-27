@@ -2,6 +2,9 @@
 import { useForm } from "react-hook-form";
 import { UserForm, userSchema } from "../lib/userSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { apiPost, apiGet } from "../lib/api";
+import { useUserStore} from "../lib/useUserStore";
+import { useRouter } from "next/navigation";
 
 
 export default function LoginPage() {
@@ -12,10 +15,40 @@ export default function LoginPage() {
     } = useForm<UserForm>({
             resolver: zodResolver(userSchema),
         });
-    
-    const onSubmit = (data: UserForm) => {
-        console.log("Login Data:", data);
 
+    const setUser = useUserStore((s) => s.setUser);
+    const router = useRouter();
+
+    const parseJwt = (token: string) => {
+        try {
+            return JSON.parse(atob(token.split(".")[1]));
+        } catch{
+            return null;
+        }
+    };
+    
+    const onSubmit = async (data: UserForm) => {
+        try {
+            const res = await apiPost("/auth/login", data);
+            const token = res.token;
+
+            const payload = parseJwt(token);
+            const userId = payload?.id;
+            let name = null;
+            if(userId) {
+                try {
+                    const user = await apiGet(`/users/${userId}`, token);
+                    name = user.name;
+                } catch {
+                    name = null;
+                }
+            }
+            setUser(name || data.email, token);
+            router.push("/");
+        } catch(err: any) {
+            console.error("login failed: ", err);
+            alert(err.message || "login failed");
+        }
     }
 
     return (
